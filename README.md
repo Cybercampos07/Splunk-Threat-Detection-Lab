@@ -10,10 +10,11 @@ enterprise SOC environment using industry standard tools.
 | Component | Role |
 |---|---|
 | Ubuntu Server 24.04 | Hosts Splunk Enterprise SIEM |
-| Windows 11 PC | Monitored endpoint |
-| Kali Linux | Attack simulation machine |
 | Splunk Enterprise | SIEM platform |
 | Splunk Universal Forwarder | Log collection agent |
+| Kali Linux | Attack simulation machine |
+| Windows 11 PC | Monitored endpoint |
+| MacBook | Workstation |
 
 ## What Was Built
 - Deployed Splunk Enterprise on Ubuntu Server
