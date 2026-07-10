@@ -34,7 +34,7 @@ enterprise SOC environment using industry standard tools.
 - UFW Firewall
 
 ## Documentation
-- [1. Infrastructure Setup](#)
+- [1. Infrastructure Setup](1-Infrastructure-Setup/README.md)
 - [2. Splunk SIEM Deployment](#)
 - [3. Log Collection Configuration](#)
 - [4. Detection Engineering](#)
