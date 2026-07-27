@@ -50,8 +50,9 @@ This tells the forwarder where to send collected logs
 once collection is configured.
 
 ### Step 3 - Verify Forwarder Connection
-After installation confirmed the forwarder was actively 
-connected to the Splunk server:
+Opened Command Prompt as Administrator on the Windows PC 
+and ran the following command to confirm the forwarder 
+was actively connected to the Splunk server:
 
     "C:\Program Files\SplunkUniversalForwarder\bin\splunk.exe" list forward-server
 
@@ -62,6 +63,7 @@ Output confirmed:
 
 The forwarder was connected but no logs were appearing 
 in Splunk yet.
+![Forwarder Active Connection](images/SplunkForwarder.png)
 
 ### Step 4 - Troubleshooting - No Logs in Splunk
 After installation ran this search in Splunk to verify 
@@ -76,7 +78,7 @@ The reason: The Universal Forwarder does not
 automatically know what logs to collect. It requires 
 a configuration file called inputs.conf that explicitly 
 tells it which log sources to monitor. Without this 
-file the forwarder sits idle — connected but collecting 
+file the forwarder sits idle. Connected but collecting 
 nothing.
 
 This is by design. Splunk leaves collection blank 
@@ -100,17 +102,7 @@ created from scratch.
 
 File contents added:
 
-    [WinEventLog://Security]
-    index = main
-    disabled = 0
-
-    [WinEventLog://System]
-    index = main
-    disabled = 0
-
-    [WinEventLog://Application]
-    index = main
-    disabled = 0
+![inputs.conf Configuration File](images/ConfigFile.png)
 
 Breaking down each line:
 - [WinEventLog://Security] = the specific Windows log to monitor
@@ -168,6 +160,10 @@ configurations to silently fail with no obvious error.
 Applied the new configuration by restarting the forwarder:
 
     "C:\Program Files\SplunkUniversalForwarder\bin\splunk.exe" restart
+
+The SplunkForwarder service confirmed as running in Windows Services:
+
+![Splunk Forwarder Service Running](images/SplunkForwarderServices.png)
 
 ### Step 8 - Verify Logs Now Flowing
 Ran the same search again in Splunk after restarting:
