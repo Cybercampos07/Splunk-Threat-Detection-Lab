@@ -141,7 +141,7 @@ Contains events from installed applications including:
 Useful for detecting suspicious software activity 
 and unauthorized installations.
 
-### Step 6 - Common Issue During Setup
+### Step 6 - Troubleshooting - inputs.conf.txt
 When creating inputs.conf Windows automatically saved 
 it as inputs.conf.txt instead of inputs.conf because 
 file extensions were hidden by default.
@@ -152,8 +152,7 @@ Fix applied:
 3. Renamed inputs.conf.txt to inputs.conf
 4. Restarted the forwarder
 
-This is a good example of why understanding file 
-extensions matters — incorrect file types can cause 
+Incorrect file types can cause 
 configurations to silently fail with no obvious error.
 
 ### Step 7 - Restart Forwarder
@@ -175,9 +174,6 @@ Ran the same search again in Splunk after restarting:
 This time results appeared confirming Windows Security 
 logs were successfully flowing into Splunk.
 
-The troubleshooting process used here mirrors real SOC 
-work — identify the problem, understand the root cause, 
-apply the fix, and verify it worked.
 
 ## Part 2 - Ubuntu Server Log Collection
 
@@ -186,10 +182,10 @@ apply the fix, and verify it worked.
 After installing Splunk Enterprise on the Ubuntu Server, 
 Splunk was capable of receiving logs from other machines 
 but was not collecting any of its own system logs. This 
-created a blind spot — the SIEM server itself was 
+created a blind spot, leaving the SIEM server itself was 
 unmonitored.
 
-To understand why this matters:
+Why this matters:
 - The Ubuntu Server runs SSH which could be targeted by 
   brute force attacks
 - Every sudo command run on the server is a security event
@@ -198,9 +194,8 @@ To understand why this matters:
 
 The decision was made to install the Universal Forwarder 
 on the Ubuntu Server itself so that the SIEM has full 
-visibility — including into its own activity. This 
-eliminates a potential blind spot and mirrors how 
-enterprise SOC environments are configured.
+visibility, including into its own activity. This 
+eliminates a potential blind spot.
 
 ### Step 2 - Download Universal Forwarder on Ubuntu Server
 Downloaded the Linux version of the Universal Forwarder 
