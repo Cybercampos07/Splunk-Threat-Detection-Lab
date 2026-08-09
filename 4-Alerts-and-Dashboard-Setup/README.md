@@ -1,47 +1,49 @@
 # 4. Alerts and Dashboard Setup
 
 ## Overview
-After collecting logs from Windows and Linux endpoints 
-the next step was building automated alerts and a 
-monitoring dashboard in Splunk. This section covers 
-the two alerts built to detect real threats and the 
-SOC monitoring dashboard created to provide continuous 
+After collecting logs from Windows and Linux endpoints
+the next step was building automated alerts and a
+monitoring dashboard in Splunk. This section covers
+the two alerts built to detect real threats and the
+SOC monitoring dashboard created to provide continuous
 visibility into security activity across the lab.
 
 ## Why Alerts and Dashboards Matter
-Manually searching through logs every few minutes is not 
-practical. Alerts automatically 
-notify us when suspicious patterns are detected, 
-while dashboards provide a live view of security activity 
-across the environment. Together they allow continuous 
-monitoring without constant manual effort
-
+Manually searching through logs every few minutes is not
+practical. Alerts automatically notify analysts when
+suspicious patterns are detected, while dashboards provide
+a live view of security activity across the environment.
+Together they allow continuous monitoring without constant
+manual effort.
 
 ## Alert 1 - Brute Force Detection
 
 ### What it Detects
-A brute force attack occurs when an attacker uses 
-automated tools to rapidly try many different passwords 
-against an account. The key indicator is multiple failed 
+A brute force attack occurs when an attacker uses
+automated tools to rapidly try many different passwords
+against an account. The key indicator is multiple failed
 login attempts in a short period of time.
 
-This alert fires when any account accumulates 3 or more 
+This alert fires when any account accumulates 3 or more
 failed login attempts within a 15 minute window.
 
 ### Why This Threshold
-The threshold of 3 failed logins was chosen based on 
-the normal activity observed in the lab:
-- Under normal usage the monitored Windows PC rarely 
+The threshold of 3 failed logins was chosen based on
+normal activity observed in the lab:
+- Under normal usage the monitored Windows PC rarely
   had more than 1 or 2 failed logins
-- Setting the threshold at 3 avoids false positives 
+- Setting the threshold at 3 avoids false positives
   from occasional mistyped passwords
-- The 15 minute window catches both fast and moderately 
+- The 15 minute window catches both fast and moderately
   paced attacks
 
+### Testing and Building the Alert
+To generate test data 4 failed logins were intentionally
+created on the Windows 11 PC by entering the wrong
+password on the lock screen. This produced 4 EventCode
+4625 entries in Splunk.
 
-### Building the Alert
-First tested the search in Splunk to confirm it 
-returned the expected results:
+The following search was then built and confirmed working:
 
     index=main EventCode=4625
     | stats count by Account_Name
@@ -54,11 +56,12 @@ Breaking down each line:
 - where count >= 3 = only show accounts with 3 or more failures
 - sort -count = show highest count first
 
+![Brute Force Search Results](images/Search.png)
 
-Once the search was confirmed working it was saved as 
-an alert by clicking Save As then Alert in Splunk.
+Once confirmed the search was saved as an alert using
+Save As then Alert in Splunk.
 
-### Alert Settings
+### Alert Configuration
 
 | Setting | Value |
 |---|---|
@@ -70,11 +73,13 @@ an alert by clicking Save As then Alert in Splunk.
 | Action | Add to Triggered Alerts |
 | Severity | Medium |
 
+Because the alert runs on a schedule it does not fire
+instantly. The search was manually verified to confirm
+the detection logic was working correctly before moving on.
 
-### How to Investigate When This Alert Fires
-When this alert fires the investigation steps are:
+### Investigation Steps When Alert Fires
 
-1. Search for the account being targeted:
+1. Identify the targeted account and review failures:
 
         index=main EventCode=4625 Account_Name="targeted_account"
         | table _time, Account_Name, Failure_Reason, Source_Network_Address
@@ -86,11 +91,10 @@ When this alert fires the investigation steps are:
         | table _time, Account_Name, Logon_Type, Source_Network_Address
         | sort -_time
 
-3. Identify the source IP and determine if it is 
-   internal or external
-4. If a successful login followed the failures treat 
+3. Determine if the source IP is internal or external
+4. If a successful login followed the failures treat
    it as an active compromise and escalate immediately
-5. If no success document the attempt, block the 
+5. If no success document the attempt, block the
    source IP, and monitor for return activity
 
 ## Alert 2 - Port Scan Detection
