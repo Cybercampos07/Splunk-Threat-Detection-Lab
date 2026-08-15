@@ -38,7 +38,7 @@ normal activity observed in the lab:
   paced attacks
 
 ### Testing and Building the Alert
-To generate test data 4 failed logins were intentionally
+To generate test data, 4 failed logins were intentionally
 created on the Windows 11 PC by entering the wrong
 password on the lock screen. This produced 4 EventCode
 4625 entries in Splunk.
@@ -50,52 +50,21 @@ The following search was then built and confirmed working:
     | where count >= 3
     | sort -count
 
-Breaking down each line:
-- index=main EventCode=4625 = find all failed login events
-- stats count by Account_Name = count failures per account
-- where count >= 3 = only show accounts with 3 or more failures
-- sort -count = show highest count first
 
 ![Brute Force Search Results](images/Search.png)
 
 Once confirmed the search was saved as an alert using
-Save As then Alert in Splunk.
+"Save As" then Alert in Splunk.
 
 ### Alert Configuration
 
-| Setting | Value |
-|---|---|
-| Title | Brute Force Detection |
-| Description | Fires when an account has 3 or more failed logins |
-| Schedule | Runs every hour |
-| Time Range | Last 15 minutes |
-| Trigger | Number of results greater than 0 |
-| Action | Add to Triggered Alerts |
-| Severity | Medium |
+![Alert Configuration](images/BruteForceAlertConfig.png)
 
-Because the alert runs on a schedule it does not fire
-instantly. The search was manually verified to confirm
-the detection logic was working correctly before moving on.
+Because the alert runs on a schedule, it does not fire
+instantly. However, the search results confirmed above
+proved the detection logic was working correctly before
+the alert was saved.
 
-### Investigation Steps When Alert Fires
-
-1. Identify the targeted account and review failures:
-
-        index=main EventCode=4625 Account_Name="targeted_account"
-        | table _time, Account_Name, Failure_Reason, Source_Network_Address
-        | sort -_time
-
-2. Check if any attempt succeeded after the failures:
-
-        index=main EventCode=4624 Account_Name="targeted_account"
-        | table _time, Account_Name, Logon_Type, Source_Network_Address
-        | sort -_time
-
-3. Determine if the source IP is internal or external
-4. If a successful login followed the failures treat
-   it as an active compromise and escalate immediately
-5. If no success document the attempt, block the
-   source IP, and monitor for return activity
 
 ## Alert 2 - Port Scan Detection
 
@@ -106,15 +75,16 @@ which services are running. This is typically the first
 phase of an attack known as reconnaissance.
 
 This alert fires when the UFW firewall blocks more than 
-100 connection attempts from the same source IP within 
+50 connection attempts from the same source IP within 
 60 seconds.
 
 ### Why This Matters
-Port scans are typically the first phase of an attack. 
-An attacker scans a target to discover which services 
-are running before deciding how to attack. Detecting 
-this early means the attacker can be identified and 
-blocked before they move any further into the network.
+Detecting reconnaissance early means an attacker can be
+identified and blocked before progressing further into
+the network. The threshold of 50 blocked connections was
+chosen because normal traffic in the lab generates almost
+no UFW blocks — any IP hitting 50 blocks in 60 seconds
+is almost certainly running an automated scan.
 
 ### Building the Alert
 Search used to detect port scan activity:
@@ -124,32 +94,7 @@ Search used to detect port scan activity:
     | where count > 100
     | sort -count
 
-Breaking down each line:
-- index=main sourcetype=ufw = search UFW firewall logs only
-- action=block = only look at blocked connections
-- stats count by src_ip = count blocks per source IP
-- where count > 100 = only show IPs that hit more than 100 blocks
-- sort -count = show highest count first
 
-
-### How to Investigate When This Alert Fires
-When this alert fires the investigation steps are:
-
-1. Identify what ports were targeted:
-
-        index=main sourcetype=ufw SRC=suspicious_ip
-        | stats count by DPT
-        | sort -count
-
-2. Check if any open ports were subsequently attacked:
-
-        index=main sourcetype=linux_secure SRC=suspicious_ip
-        | table _time, host, _raw
-        | sort _time
-
-3. Determine if the IP is internal or external
-4. Block the source IP at the firewall level
-5. Monitor for any follow up activity from the same IP
 
 ## SOC Monitoring Dashboard
 
