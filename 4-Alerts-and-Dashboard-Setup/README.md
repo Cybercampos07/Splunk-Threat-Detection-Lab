@@ -53,7 +53,7 @@ The following search was then built and confirmed working:
 
 ![Brute Force Search Results](images/Search.png)
 
-Once confirmed the search was saved as an alert using
+Once confirmed, the search was saved as an alert using
 "Save As" then Alert in Splunk.
 
 ### Alert Configuration
@@ -74,25 +74,33 @@ to many different ports on a target machine to discover
 which services are running. This is typically the first 
 phase of an attack known as reconnaissance.
 
-This alert fires when the UFW firewall blocks more than 
-50 connection attempts from the same source IP within 
-60 seconds.
+This alert fires when the UFW firewall blocks more than
+30 connection attempts from the same source IP within
+the alert's configured time range.
 
 ### Why This Matters
 Detecting reconnaissance early means an attacker can be
 identified and blocked before progressing further into
-the network. The threshold of 50 blocked connections was
+the network. The threshold of 30 blocked connections was
 chosen because normal traffic in the lab generates almost
-no UFW blocks — any IP hitting 50 blocks in 60 seconds
+no UFW blocks — any IP hitting 30 blocks in 60 seconds
 is almost certainly running an automated scan.
 
 ### Building the Alert
-Search used to detect port scan activity:
+The following search was built to detect port scan 
+activity using UFW firewall logs:
 
-    index=main sourcetype=ufw action=block
+    index=main sourcetype=ufw "BLOCK"
+    | rex field=_raw "SRC=(?<src_ip>\S+)"
     | stats count by src_ip
-    | where count > 100
+    | where count > 30
     | sort -count
+
+
+Once confirmed the search was saved as an alert using
+"Save As" then Alert in Splunk.
+
+### Alert Configuration
 
 
 
