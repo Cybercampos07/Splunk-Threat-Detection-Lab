@@ -96,13 +96,24 @@ activity using UFW firewall logs:
     | where count > 30
     | sort -count
 
+![Port Scan Search Results](images/PortScanAlert.png)
 
 Once confirmed the search was saved as an alert using
 "Save As" then Alert in Splunk.
 
 ### Alert Configuration
 
+![Port Scan Alert Configuration](images/PortScanAlertConfig.png)
 
+Because the alert runs on a schedule it does not fire
+instantly. During initial testing the search returned
+no results — this was expected as no port scan activity
+had been generated yet. Once an Nmap scan was run from
+the Kali machine UFW block entries appeared in Splunk
+confirming the detection logic was working correctly.
+
+A full port scan simulation and investigation using
+this alert is covered in Section 5 - Attack Simulation.
 
 ## SOC Monitoring Dashboard
 
