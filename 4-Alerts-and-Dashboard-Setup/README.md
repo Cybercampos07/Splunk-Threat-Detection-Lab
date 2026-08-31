@@ -1,7 +1,7 @@
 # 4. Alerts and Dashboard Setup
 
 ## Overview
-After collecting logs from Windows and Linux endpoints
+After collecting logs from Windows and Linux endpoints,
 the next step was building automated alerts and a
 monitoring dashboard in Splunk. This section covers
 the two alerts built to detect real threats and the
@@ -39,13 +39,12 @@ normal activity observed in the lab:
   paced attacks
 
 ### Testing and Building the Alert
-To generate test data failed logins were intentionally
+To generate test data, failed logins were intentionally
 created on both machines. 4 failed logins were created
 on the Windows 11 PC via the lock screen and 3 failed
 SSH attempts were made against the Ubuntu Server via
 command line. This produced EventCode 4625 entries in
-Splunk from Windows and Failed password entries in
-linux_secure from the Ubuntu Server.
+Splunk from Windows and Failed password entries in Splunk from the Ubuntu Server's authentication log collected as sourcetype linux_secure.
 
 The following search was then built and confirmed working:
 
@@ -89,15 +88,15 @@ which services are running. This is typically the first
 phase of an attack known as reconnaissance.
 
 This alert fires when the UFW firewall blocks more than
-30 connection attempts from the same source IP within
+10 connection attempts from the same source IP within
 the alert's configured time range.
 
 ### Why This Matters
 Detecting reconnaissance early means an attacker can be
 identified and blocked before progressing further into
-the network. The threshold of 30 blocked connections was
+the network. The threshold of 10 blocked connections was
 chosen because normal traffic in the lab generates almost
-no UFW blocks — any IP hitting 30 blocks in 60 seconds
+no UFW blocks — any IP hitting 10 blocks within 5 minutes
 is almost certainly running an automated scan.
 
 ### Building the Alert
@@ -107,24 +106,21 @@ activity using UFW firewall logs:
     index=main sourcetype=ufw "BLOCK"
     | rex field=_raw "SRC=(?<src_ip>\S+)"
     | stats count by src_ip
-    | where count > 30
+    | where count > 10
     | sort -count
 
-![Port Scan Search Results](images/PortScanAlert.png)
+![Port Scan Search Results](images/PortScanSearch.png)
 
 Once confirmed the search was saved as an alert using
 "Save As" then Alert in Splunk.
 
 ### Alert Configuration
 
-![Port Scan Alert Configuration](images/PortScanAlertConfig.png)
+![Port Scan Alert Configuration](images/PortScanSettings.png)
 
-Because the alert runs on a schedule it does not fire
-instantly. During initial testing the search returned
-no results — this was expected as no port scan activity
-had been generated yet. Once an Nmap scan was run from
-the Kali machine UFW block entries appeared in Splunk
-confirming the detection logic was working correctly.
+This alert was also configured as a scheduled alert running
+every 5 minutes with a matching 5 minute lookback window for the same reason mentioned on Alert 1.
+
 
 A full port scan simulation and investigation using
 this alert is covered in Section 5 - Attack Simulation.
