@@ -24,48 +24,62 @@ automated tools to rapidly try many different passwords
 against an account. The key indicator is multiple failed
 login attempts in a short period of time.
 
-This alert fires when any account accumulates 3 or more
-failed login attempts within a 15 minute window.
+This alert fires when 3 or more failed login attempts
+are detected within a 5 minute window on either the
+Windows PC or the Ubuntu Server.
 
 ### Why This Threshold
 The threshold of 3 failed logins was chosen based on
 normal activity observed in the lab:
-- Under normal usage the monitored Windows PC rarely
-  had more than 1 or 2 failed logins
+- Under normal usage neither machine had more than
+  1 or 2 failed logins
 - Setting the threshold at 3 avoids false positives
   from occasional mistyped passwords
-- The 15 minute window catches both fast and moderately
+- The 5 minute window catches both fast and moderately
   paced attacks
 
 ### Testing and Building the Alert
-To generate test data, 4 failed logins were intentionally
-created on the Windows 11 PC by entering the wrong
-password on the lock screen. This produced 4 EventCode
-4625 entries in Splunk.
+To generate test data failed logins were intentionally
+created on both machines. 4 failed logins were created
+on the Windows 11 PC via the lock screen and 3 failed
+SSH attempts were made against the Ubuntu Server via
+command line. This produced EventCode 4625 entries in
+Splunk from Windows and Failed password entries in
+linux_secure from the Ubuntu Server.
 
 The following search was then built and confirmed working:
 
-    index=main EventCode=4625
-    | stats count by Account_Name
+    index=main (EventCode=4625 OR (sourcetype=linux_secure "Failed password"))
+    | stats count by host
     | where count >= 3
     | sort -count
 
 
-![Brute Force Search Results](images/Search.png)
+![Brute Force Search Results](images/BruteForceAlert.png)
+
+After setting the time range to Last 24 hours and 
+running the search both machines appeared in the 
+results. This confirms that the intentionally generated 
+failed logins on the Windows PC and Ubuntu Server 
+were successfully detected by the search logic.
 
 Once confirmed, the search was saved as an alert using
 "Save As" then Alert in Splunk.
 
 ### Alert Configuration
 
-![Alert Configuration](images/BruteForceAlertConfig.png)
+![Alert Configuration](images/BruteForceSettings.png)
 
-Because the alert runs on a schedule, it does not fire
-instantly. However, the search results confirmed above
-proved the detection logic was working correctly before
-the alert was saved.
+This alert was configured as a scheduled alert running 
+every 5 minutes with a matching 5 minute lookback window. 
+This approach follows Splunk best practices — scheduled 
+alerts are more reliable than real time alerts because 
+they account for indexing lag and use fewer system 
+resources while still providing detection within 5 minutes 
+of any suspicious activity occurring.
 
-
+A full brute force simulation and investigation using
+this alert is covered in Section 5 - Attack Simulation.
 ## Alert 2 - Port Scan Detection
 
 ### What it Detects
