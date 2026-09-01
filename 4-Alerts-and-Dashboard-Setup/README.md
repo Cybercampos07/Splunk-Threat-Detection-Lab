@@ -147,8 +147,11 @@ on a set schedule.
 
 ### Panel 1 - Failed Login Attempts Over Time
 
-    index=main EventCode=4625
-    | timechart span=1h count as "Failed Logins"
+    index=main (EventCode=4625 OR (sourcetype=linux_secure "Failed password"))
+    | eval host=if(EventCode=4625, "Windows-PC", "Ubuntu-Server")
+    | timechart span=1h count by host
+
+![Failed Login Attempts Over Time](images/PanelOne.png)
 
 A line chart showing failed login attempts over the 
 past 7 days. Spikes in this chart immediately indicate 
@@ -160,15 +163,21 @@ How to read it:
 - Large spike = possible brute force attack
 - Sustained high line = active ongoing attack
 
+![Failed Login Lines](images/PanelOneLine.png)
+
+
 ### Panel 2 - Failed Logins Today
 
-    index=main EventCode=4625
+    index=main (EventCode=4625 OR (sourcetype=linux_secure "Failed password"))
     | stats count as "Total Failed Logins"
+
+![Failed Login Number](images/FailedLoginsNumber.png)
 
 Displays a single number showing total failed logins 
 today. Gives an analyst an immediate count without 
 running any searches manually.
 
+![Failed Login Number](images/FailedLoginsTodayNumber.png)
 ### Panel 3 - Security Events Summary
 
     index=main EventCode IN (4624, 4625, 4672, 4688)
@@ -180,22 +189,31 @@ running any searches manually.
         EventCode=4688, "New Process Created")
     | table Event_Type, count
     | sort -count
+![Security Events Summary](images/SecurityEventsSummary.png)
 
 Shows a breakdown of key security events by type. The 
 ratio of successful to failed logins is particularly 
-valuable for spotting attacks at a glance.
+valuable for spotting attacks at a glance. 
+
+![Security Events Summary](images/SecurityEventsChart.png)
 
 ### Panel 4 - Top Accounts with Failed Logins
 
-    index=main EventCode=4625
-    | stats count by Account_Name
+    index=main (EventCode=4625 OR (sourcetype=linux_secure "Failed password"))
+    | rex field=_raw "Failed password for (?<linux_user>\S+)"
+    | eval Account=coalesce(Account_Name, linux_user)
+    | stats count by Account
     | sort -count
-    | rename count as "Failed Attempts" Account_Name as "Account"
+    | rename count as "Failed Attempts"
+
+![Top Accounts with Failed Logins](images/PanelFour.png)
 
 Shows which accounts are accumulating the most failed 
 login attempts. In a brute force attack the targeted 
 account will appear at the top with a significantly 
-higher count than others.
+higher count than others. The crossed out username is the Ubuntu Server.
+
+![Top Accounts](images/PanelFourAccounts.png)
 
 ## Key Concepts Learned
 - Building threshold based alerts in Splunk
@@ -204,7 +222,6 @@ higher count than others.
 - Saving searches as scheduled alerts
 - Building multi panel SOC dashboards
 - Using timechart to visualize security trends
-- The difference between detecting and investigating threats
 - How alerts and dashboards reduce manual analyst workload
 
 ## Next Section
