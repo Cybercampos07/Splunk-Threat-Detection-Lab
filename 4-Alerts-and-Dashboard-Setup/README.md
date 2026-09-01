@@ -177,7 +177,7 @@ Displays a single number showing total failed logins
 today. Gives an analyst an immediate count without 
 running any searches manually.
 
-![Failed Login Number](images/FailedLoginsTodayNumber.png)
+![Failed Login Number](images/FailedLoginTodayNumber.png)
 ### Panel 3 - Security Events Summary
 
     index=main EventCode IN (4624, 4625, 4672, 4688)
@@ -214,6 +214,9 @@ account will appear at the top with a significantly
 higher count than others. The crossed out username is the Ubuntu Server.
 
 ![Top Accounts](images/PanelFourAccounts.png)
+
+Complete Dashboard:
+![Completed Dashboard](images/CompletedDashboard.png)
 
 ## Key Concepts Learned
 - Building threshold based alerts in Splunk
