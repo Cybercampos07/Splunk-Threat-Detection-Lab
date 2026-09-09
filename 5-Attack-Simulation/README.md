@@ -29,7 +29,7 @@ A wordlist of common passwords was created on the
 Kali machine with the actual account password included 
 in the list
 
-![Passwords Wordlist](images/passwordFile.png)
+![Passwords](images/PasswordFile.png)
 
 
 
