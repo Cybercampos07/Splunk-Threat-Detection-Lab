@@ -49,6 +49,28 @@ Command breakdown:
 
 ![Attack](images/SuccessfulAttack.png)
 
+Once Hydra found the correct password it was used 
+to SSH directly into the server as the attacker:
+
+    ssh socadmin@10.0.0.26
+
+From there a few commands were run to get a feel 
+for the environment:
+
+- whoami
+- id
+- uname -a
+- cat /etc/passwd
+- sudo -l
+
+
+A new backdoor account was then created to simulate 
+what an attacker would do to maintain access:
+
+    sudo useradd -m backdoor
+    sudo passwd backdoor
+
+
 ---
 
 ### Defender Side
@@ -128,7 +150,7 @@ Any sudo commands run were checked:
     | sort _time
     
 Sudo activity from the attacker's session showed up, confirming the attacker was running privileged 
-commands after gaining access.
+commands after gaining access:
 ![Sudo Command](images/SudoCommand.png)
 
 ---
