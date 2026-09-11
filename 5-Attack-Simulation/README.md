@@ -226,12 +226,14 @@ in Splunk confirming it was captured in the logs:
 
    Set both files to:
         PasswordAuthentication no
+   
+![Authentication](images/Authentication.png)
 
-4. Restart SSH (Ubuntu Server):
+5. Restart SSH (Ubuntu Server):
 
         sudo systemctl restart ssh
 
-5. Verify password auth is disabled by attempting 
+6. Verify password auth is disabled by attempting 
    to connect from the Kali machine using password only:
 
         ssh socadmin@10.0.0.26
