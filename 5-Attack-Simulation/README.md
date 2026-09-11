@@ -166,3 +166,84 @@ A new account had been created. The attacker
 established a backdoor to maintain access even if 
 the original credentials were changed.
 ![Backdoor](images/Backdoor.png)
+
+#### Remediation
+
+**Immediate Actions:**
+
+The backdoor account that was created during the 
+attack was removed immediately:
+
+    sudo userdel -r backdoor
+
+This was verified by confirming the account no longer 
+appeared in the system:
+
+    cat /etc/passwd | grep backdoor
+
+
+The attacking IP was then blocked at the firewall 
+level to prevent any further access:
+
+    sudo ufw deny from 10.0.0.140
+    sudo ufw status
+
+![IP Blocked](images/IPAddressBlock.png)
+
+
+
+The removal of the backdoor account was also visible 
+in Splunk confirming it was captured in the logs:
+
+    index=main sourcetype=linux_secure "delete user"
+    | table _time, host, _raw
+    | sort -_time
+
+![Backdoor Removed Log](images/BackdoorRemovedLog.png)
+
+**Hardening**
+
+- Disabled SSH password authentication and switched 
+  to key based authentication only
+
+  Why: Instead of a username and password, a cryptographic 
+  key file is now required to authenticate. This prevents 
+  brute force attacks entirely since there is no password 
+  to guess.
+
+1. Generate key pair (Windows PC):
+
+        ssh-keygen -t rsa -b 4096 -f C:\Users\%USERNAME%\.ssh\id_rsa
+
+2. Copy public key to server (Windows PC):
+
+        type C:\Users\%USERNAME%\.ssh\id_rsa.pub | ssh socadmin@10.0.0.26 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+
+3. Disable password authentication (Ubuntu Server):
+
+        sudo nano /etc/ssh/sshd_config
+        sudo nano /etc/ssh/sshd_config.d/50-cloud-init.conf
+
+   Set both files to:
+        PasswordAuthentication no
+
+4. Restart SSH (Ubuntu Server):
+
+        sudo systemctl restart ssh
+
+5. Verify password auth is disabled by attempting 
+   to connect from the Kali machine using password only:
+
+        ssh socadmin@10.0.0.26
+
+   Should return Permission denied (publickey) 
+
+
+**Other Recommendations:**
+- Install fail2ban to automatically block IPs after 
+  repeated failed login attempts
+- Restrict SSH access to trusted IP addresses only
+- Implement network segmentation to prevent attack 
+  machines from directly reaching critical servers
+- Consider moving SSH to a non standard port to 
+  reduce automated scanning
