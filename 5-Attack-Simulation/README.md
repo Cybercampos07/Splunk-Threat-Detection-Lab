@@ -1,24 +1,16 @@
 # 5. Attack Simulation
 
 ## Overview
-Now that the alerts and dashboard are set up the next 
+Now that the alerts and dashboard were set up, the next 
 step was to actually test them. A Kali Linux machine 
-running on the same internal network (10.0.0.140) was 
-used to simulate attacks against the Ubuntu Server 
-(10.0.0.26) and Windows PC (10.0.0.220). Since the 
-Kali machine is internal the attacking IP will appear 
-as a private address in Splunk — simulating a scenario 
-where an attacker has already gained a foothold inside 
-the network.
+on the same internal network (10.0.0.140) was used to 
+simulate an SSH brute force attack against the Ubuntu 
+Server (10.0.0.26). Since the Kali machine is internal 
+the attacking IP shows up as a private address in Splunk. This simulates a scenario where an attacker has already 
+gained a foothold inside the network.
 
-Three attacks were performed and investigated:
-- SSH brute force against the Ubuntu Server
-- Port scan against the Ubuntu Server  
-- Brute force against the Windows PC
-
-While the attacker perspective is briefly covered 
-for context the primary focus is on what appeared 
-in Splunk and how each attack was investigated.
+Note: The focus is on what appeared in Splunk and how the 
+attack was detected, investigated, and remediated.
 
 ---
 
@@ -49,7 +41,7 @@ Command breakdown:
 
 ![Attack](images/SuccessfulAttack.png)
 
-Once Hydra found the correct password it was used 
+Once Hydra found the correct password, it was used 
 to SSH directly into the server as the attacker:
 
     ssh socadmin@10.0.0.26
@@ -76,8 +68,7 @@ what an attacker would do to maintain access:
 ### Defender Side
 
 #### Discovery
-While checking Splunk the following search was run 
-against the Ubuntu Server's authentication log:
+While checking Splunk the following search was run:
 
     index=main sourcetype=linux_secure "Failed password"
     | table _time, host, _raw
@@ -129,7 +120,7 @@ This confirms the attacker got in.
 
 ---
 
-Running this search pulled up about 10 failed password 
+Running this next search pulled up about 10 failed password 
 check entries followed by a new session entry at the 
 bottom. This is showing exactly where the failed attempts 
 ended and the successful login began.
@@ -206,10 +197,11 @@ in Splunk confirming it was captured in the logs:
 - Disabled SSH password authentication and switched 
   to key based authentication only
 
-  Why: Instead of a username and password, a cryptographic 
-  key file is now required to authenticate. This prevents 
-  brute force attacks entirely since there is no password 
-  to guess.
+Why: Instead of a username and password a cryptographic 
+key file is now required to authenticate. This makes 
+password based brute force attacks ineffective. An 
+attacker would need to steal the private key file 
+itself rather than guessing a password.
 
 1. Generate key pair (Windows PC):
 
